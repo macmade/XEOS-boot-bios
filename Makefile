@@ -85,30 +85,32 @@ vpath %$(EXT_ASM) $(PATH_SRC_BOOT_BIOS)
 #-------------------------------------------------------------------------------
 
 # Adds the suffixes used in this file
-.SUFFIXES: $(EXT_ASM) $(EXT_BIN_RAW)
+.SUFFIXES:  $(EXT_ASM)      \
+            $(EXT_BIN_RAW)
 
 #-------------------------------------------------------------------------------
-# Macros
+# Files
 #-------------------------------------------------------------------------------
 
 # Gets every assembly file in the source directory
-_FILES_ASM        = $(foreach dir,$(PATH_SRC_BOOT_BIOS),$(wildcard $(PATH_SRC_BOOT_BIOS)*$(EXT_ASM)))
+_FILES_ASM          = $(foreach dir,$(PATH_SRC_BOOT_BIOS),$(wildcard $(PATH_SRC_BOOT_BIOS)*$(EXT_ASM)))
 
 # Gets only the file name of the assembly files
-_FILES_ASM_REL    = $(notdir $(_FILES_ASM))
+_FILES_ASM_REL      = $(notdir $(_FILES_ASM))
 
 # Replace the code extension by the binary one
-_FILES_ASM_BIN    = $(subst $(EXT_ASM),$(EXT_BIN_RAW),$(_FILES_ASM_REL))
+_FILES_ASM_BIN      = $(subst $(EXT_ASM),$(EXT_BIN_RAW),$(_FILES_ASM_REL))
 
 # Prefix all binary files with the build directory
-_FILES_BIN_BUILD  = $(addprefix $(PATH_BUILD_BOOT_BIOS),$(_FILES_ASM_BIN))
+_FILES_BIN_BUILD    = $(addprefix $(PATH_BUILD_BOOT_BIOS),$(_FILES_ASM_BIN))
 
 #-------------------------------------------------------------------------------
 # Built-in targets
 #-------------------------------------------------------------------------------
 
 # Declaration for phony targets, to avoid problems with local files
-.PHONY: all clean
+.PHONY: all     \
+        clean
 
 #-------------------------------------------------------------------------------
 # Phony targets
