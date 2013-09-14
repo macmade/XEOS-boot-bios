@@ -121,9 +121,6 @@
     ; Space for local variables
     sub     esp,        %1 * 4
     
-    ; Aligns the stack on a 16 byte boundary
-    and     esp,        0xFFFFFFF0
-    
 %endmacro
 
 ;-------------------------------------------------------------------------------
@@ -213,12 +210,6 @@
     
     ; Space for local variables
     sub     rsp,        %1 * 8
-    
-    ; Aligns the stack on a 16 byte boundary
-    push    rax
-    mov     rax,        0xFFFFFFFFFFFFFFF0
-    and     rsp,        rax
-    pop     rax
     
 %endmacro
 
