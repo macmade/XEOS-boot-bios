@@ -107,6 +107,7 @@ start: jmp main
 %include "xeos.macros.inc.s"        ; General macros
 %include "xeos.16.int.inc.s"        ; BIOS interrupts
 %include "xeos.16.video.inc.s"      ; BIOS video services
+%include "xeos.16.video.ext.inc.s"  ; BIOS video services (extended)
 %include "xeos.16.io.fat12.inc.s"   ; FAT-12 IO procedures
 %include "xeos.ascii.inc.s"         ; ASCII table
 %include "xeos.16.cpu.inc.s"        ; CPU informations
@@ -637,41 +638,23 @@ main:
         ; Restores the interrupts
         sti
         
-        ; Sets VGA video colors
-        @XEOS.16.video.setPaletteColor 0x00, @XEOS.DAC.colors.black         ; Black
-        @XEOS.16.video.setPaletteColor 0x01, @XEOS.DAC.colors.blue          ; Blue
-        @XEOS.16.video.setPaletteColor 0x02, @XEOS.DAC.colors.green         ; Green
-        @XEOS.16.video.setPaletteColor 0x03, @XEOS.DAC.colors.cyan          ; Cyan
-        @XEOS.16.video.setPaletteColor 0x04, @XEOS.DAC.colors.red           ; Red
-        @XEOS.16.video.setPaletteColor 0x05, @XEOS.DAC.colors.magenta       ; Magenta
-        @XEOS.16.video.setPaletteColor 0x14, @XEOS.DAC.colors.yellow        ; Brown
-        @XEOS.16.video.setPaletteColor 0x07, @XEOS.DAC.colors.gray.light    ; Light Gray
-        @XEOS.16.video.setPaletteColor 0x38, @XEOS.DAC.colors.gray          ; Dark Gray
-        @XEOS.16.video.setPaletteColor 0x39, @XEOS.DAC.colors.blue          ; Light Blue
-        @XEOS.16.video.setPaletteColor 0x3A, @XEOS.DAC.colors.green         ; Light Green
-        @XEOS.16.video.setPaletteColor 0x3B, @XEOS.DAC.colors.cyan          ; Light Cyan
-        @XEOS.16.video.setPaletteColor 0x3C, @XEOS.DAC.colors.red           ; Light Red
-        @XEOS.16.video.setPaletteColor 0x3D, @XEOS.DAC.colors.magenta       ; Light Magenta
-        @XEOS.16.video.setPaletteColor 0x3E, @XEOS.DAC.colors.yellow        ; Yellow
-        @XEOS.16.video.setPaletteColor 0x3F, @XEOS.DAC.colors.white         ; White
-        
-        ; Sets EGA video colors
-        @XEOS.16.video.setPaletteColor 0x00, @XEOS.DAC.colors.black         ; Black
-        @XEOS.16.video.setPaletteColor 0x01, @XEOS.DAC.colors.blue          ; Blue
-        @XEOS.16.video.setPaletteColor 0x02, @XEOS.DAC.colors.green         ; Green
-        @XEOS.16.video.setPaletteColor 0x03, @XEOS.DAC.colors.cyan          ; Cyan
-        @XEOS.16.video.setPaletteColor 0x04, @XEOS.DAC.colors.red           ; Red
-        @XEOS.16.video.setPaletteColor 0x05, @XEOS.DAC.colors.magenta       ; Magenta
-        @XEOS.16.video.setPaletteColor 0x06, @XEOS.DAC.colors.yellow        ; Brown
-        @XEOS.16.video.setPaletteColor 0x07, @XEOS.DAC.colors.gray.light    ; Light Gray
-        @XEOS.16.video.setPaletteColor 0x08, @XEOS.DAC.colors.gray          ; Dark Gray
-        @XEOS.16.video.setPaletteColor 0x09, @XEOS.DAC.colors.blue          ; Light Blue
-        @XEOS.16.video.setPaletteColor 0x0A, @XEOS.DAC.colors.green         ; Light Green
-        @XEOS.16.video.setPaletteColor 0x0B, @XEOS.DAC.colors.cyan          ; Light Cyan
-        @XEOS.16.video.setPaletteColor 0x0C, @XEOS.DAC.colors.red           ; Light Red
-        @XEOS.16.video.setPaletteColor 0x0D, @XEOS.DAC.colors.magenta       ; Light Magenta
-        @XEOS.16.video.setPaletteColor 0x0E, @XEOS.DAC.colors.yellow        ; Yellow
-        @XEOS.16.video.setPaletteColor 0x0F, @XEOS.DAC.colors.white         ; White
+        ; Sets VGA/EGA video colors
+        @XEOS.16.video.setPaletteColor 0x00, 0x00, @XEOS.DAC.colors.black         ; Black
+        @XEOS.16.video.setPaletteColor 0x01, 0x01, @XEOS.DAC.colors.blue          ; Blue
+        @XEOS.16.video.setPaletteColor 0x02, 0x02, @XEOS.DAC.colors.green         ; Green
+        @XEOS.16.video.setPaletteColor 0x03, 0x03, @XEOS.DAC.colors.cyan          ; Cyan
+        @XEOS.16.video.setPaletteColor 0x04, 0x04, @XEOS.DAC.colors.red           ; Red
+        @XEOS.16.video.setPaletteColor 0x05, 0x05, @XEOS.DAC.colors.magenta       ; Magenta
+        @XEOS.16.video.setPaletteColor 0x14, 0x06, @XEOS.DAC.colors.yellow        ; Brown
+        @XEOS.16.video.setPaletteColor 0x07, 0x07, @XEOS.DAC.colors.gray.light    ; Light Gray
+        @XEOS.16.video.setPaletteColor 0x38, 0x08, @XEOS.DAC.colors.gray          ; Dark Gray
+        @XEOS.16.video.setPaletteColor 0x39, 0x09, @XEOS.DAC.colors.blue          ; Light Blue
+        @XEOS.16.video.setPaletteColor 0x3A, 0x0A, @XEOS.DAC.colors.green         ; Light Green
+        @XEOS.16.video.setPaletteColor 0x3B, 0x0B, @XEOS.DAC.colors.cyan          ; Light Cyan
+        @XEOS.16.video.setPaletteColor 0x3C, 0x0C, @XEOS.DAC.colors.red           ; Light Red
+        @XEOS.16.video.setPaletteColor 0x3D, 0x0D, @XEOS.DAC.colors.magenta       ; Light Magenta
+        @XEOS.16.video.setPaletteColor 0x3E, 0x0E, @XEOS.DAC.colors.yellow        ; Yellow
+        @XEOS.16.video.setPaletteColor 0x3F, 0x0F, @XEOS.DAC.colors.white         ; White
         
         @XEOS.16.video.setCursor        0,                          0
         @XEOS.boot.stage2.print.color   $XEOS.boot.stage2.msg.boot, @XEOS.16.video.color.white,   @XEOS.16.video.color.blue
