@@ -112,6 +112,45 @@ BITS    16
 %define @XEOS.16.video.color.white          0x0F
 
 ;-------------------------------------------------------------------------------
+; Sets a color palette value
+; 
+; Parameters:
+; 
+;       1:          The palette color's number
+;       2:          The red component (0-255)
+;       3:          The green component (0-255)
+;       4:          The blue component (0-255)
+; 
+; Killed registers:
+;       
+;       None
+;-------------------------------------------------------------------------------
+%macro @XEOS.16.video.setPaletteColor 4
+    
+    ; Saves all registers
+    pusha
+    
+    ; RGB components (VGA format - 0-63)
+    mov     dh,     ( %2 * 63 ) / 255
+    mov     ch,     ( %3 * 63 ) / 255
+    mov     cl,     ( %4 * 63 ) / 255
+    
+    ; Color number
+    mov     bx,     %1
+    
+    ; BIOS video function to set a palette color
+    mov     ah,     0x10
+    mov     al,     0x10
+    
+    ; Calls the BIOS video services
+    @XEOS.16.int.video
+    
+    ; Restores all registers
+    popa
+    
+%endmacro
+
+;-------------------------------------------------------------------------------
 ; Computes the value of a BIOS screen color into a register
 ; 
 ; Parameters:
@@ -127,11 +166,11 @@ BITS    16
 %macro @XEOS.16.video.createScreenColor 3
     
     ; Stores the background color
-    mov %1, %3
-    shl %1, 4
+    mov     %1,     %3
+    shl     %1,     4
     
     ; Stores the foreground color
-    or %1, %2
+    or      %1,     %2
     
 %endmacro
 
