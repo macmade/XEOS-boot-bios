@@ -86,23 +86,108 @@ BITS    16
 ;-------------------------------------------------------------------------------
 ; The VESA info block has the following structure:
 ;       
-;       - BYTE  signature[ 4 ]      Signature bytes (VESA)
-;       - WORD  version             VESA version number
-;       - DWORD oem_string          OEM string pointer
-;       - BYTE  capabilities[ 4 ]   Video capabilities
-;       - DWORD video_mode_ptr      SVGA modes pointer
-;       - WORD  total_memory        Available chunks of 64Kb on board
-;       - BYTE  reserved[ 236 ]     Reserved bytes
+;       - BYTE  .vbeSignature[ 4 ]      VBE Signature
+;       - WORD  .vbeVersion             VBE Version
+;       - DWORD .oemStringPtr           Pointer to OEM String
+;       - BYTE  .capabilities[ 4 ]      Capabilities of graphics controller
+;       - DWORD .videoModePtr           Pointer to VideoModeList
+;       - WORD  .totalMemory            Number of 64kb memory blocks
+;       - WORD  .oemSoftwareRev         VBE implementation Software revision
+;       - DWORD .oemVendorNamePtr       Pointer to Vendor Name String
+;       - DWORD .oemProductNamePtr      Pointer to Product Name String
+;       - DWORD .oemProductRevPtr       Pointer to Product Revision String
+;       - BYTE  .reserved[ 222 ]        Reserved for VBE implementation scratch area
+;       - BYTE  .oemData[ 256 ]         Data Area for OEM Strings
 ;-------------------------------------------------------------------------------
 struc XEOS.16.vesa.info_t
 
-    .signature:         resb    4
-    .version:           resw    1
-    .oem_string:        resd    1
-    .capabilities:      resd    1
-    .video_mode_ptr:    resd    1
-    .total_memory:      resw    1
-    .reserved:          resb    236
+    .vbeSignature:          resb    4
+    .vbeVersion:            resw    1
+    .oemStringPtr:          resd    1
+    .capabilities:          resb    4
+    .videoModePtr:          resd    1
+    .totalMemory:           resw    1
+    .oemSoftwareRev:        resw    1
+    .oemVendorNamePtr:      resd    1
+    .oemProductNamePtr:     resd    1
+    .oemProductRevPtr:      resd    1
+    .reserved:              resb    222
+    .oemData:               resb    256
+
+endstruc
+
+;-------------------------------------------------------------------------------
+; The VESA mode info block has the following structure:
+;       
+;       - WORD  .modeAttributes         Mode attributes
+;       - BYTE  .winAAttributes         Window A attributes
+;       - BYTE  .winBAttributes         Window B attributes
+;       - WORD  .winGranularity         Window granularity
+;       - WORD  .winSize                Window size
+;       - WORD  .winASegment            Window A start segment
+;       - WORD  .winBSegment            Window B start segment
+;       - DWORD .winFuncPtr             Pointer to window function
+;       - WORD  .bytesPerScanLine       Bytes per scan line
+;       - WORD  .xResolution            Horizontal resolution in pixels or characters
+;       - WORD  .yResolution            Vertical resolution in pixels or characters
+;       - BYTE  .xCharSize              Character cell width in pixels
+;       - BYTE  .yCharSize              Character cell height in pixels
+;       - BYTE  .numberOfPlanes         Number of memory planes
+;       - BYTE  .bitsPerPixel           Bits per pixel
+;       - BYTE  .numberOfBanks          Number of banks
+;       - BYTE  .memoryModel            Memory model type
+;       - BYTE  .bankSize               Bank size in KB
+;       - BYTE  .numberOfImagePages     Number of images
+;       - BYTE  .reserved_1             Reserved for page function
+;       - BYTE  .redMaskSize            Size of direct color red mask in bits
+;       - BYTE  .redFieldPosition       Bit position of lsb of red mask
+;       - BYTE  .greenMaskSize          Size of direct color green mask in bits
+;       - BYTE  .greenFieldPosition     Bit position of lsb of green mask
+;       - BYTE  .blueMaskSize           Size of direct color blue mask in bits
+;       - BYTE  .blueFieldPosition      Bit position of lsb of blue mask
+;       - BYTE  .rsvdMaskSize           Size of direct color reserved mask in bits
+;       - BYTE  .rsvdFieldPosition      Bit position of lsb of reserved mask
+;       - BYTE  .directColorModeInfo    Direct color mode attributes
+;       - DWORD .physBasePtr            Physical address for flat memory frame buffer
+;       - DWORD .offScreenMemOffset     Pointer to start of off screen memory
+;       - WORD  .offScreenMemSize       Amount of off screen memory in 1k units
+;       - BYTE  .reserved_2             Remainder of ModeInfoBlock
+;-------------------------------------------------------------------------------
+struc XEOS.16.vesa.modeinfo_t
+
+    .modeAttributes:		resw	1
+    .winAAttributes:		resb	1
+    .winBAttributes:		resb	1
+    .winGranularity:		resw	1
+    .winSize:               resw	1
+    .winASegment:           resw	1
+    .winBSegment:           resw	1
+    .winFuncPtr:            resd	1
+    .bytesPerScanLine:      resw	1
+    .xResolution:           resw	1
+    .yResolution:           resw	1
+    .xCharSize:             resb	1
+    .yCharSize:             resb	1
+    .numberOfPlanes:		resb	1
+    .bitsPerPixel:          resb	1
+    .numberOfBanks:         resb	1
+    .memoryModel:           resb	1
+    .bankSize:              resb	1
+    .numberOfImagePages:    resb	1
+    .reserved_1:            resb	1
+    .redMaskSize:           resb	1
+    .redFieldPosition:      resb	1
+    .greenMaskSize:         resb	1
+    .greenFieldPosition:    resb	1
+    .blueMaskSize:          resb	1
+    .blueFieldPosition:     resb	1
+    .rsvdMaskSize:          resb	1
+    .rsvdFieldPosition:     resb	1
+    .directColorModeInfo:   resb	1
+    .physBasePtr:           resd	1
+    .offScreenMemOffset:    resd	1
+    .offScreenMemSize:      resw	1
+    .reserved_2:            resb	206
 
 endstruc
 
@@ -111,55 +196,153 @@ endstruc
 ;-------------------------------------------------------------------------------
 
 ;-------------------------------------------------------------------------------
-; Checks if a specific VESA mode is available
+; Converts an unsigned binary bumber into a string representation
 ; 
 ; Input registers:
 ;       
-;       - BX:       The video mode to check for
-;       - SI:       The address of the VESA info buffer
+;       - AX:       The desired horizontal resolution
+;       - BX:       The desired vertical resolution
+;       - CX:       The desired bits per pixel
+;       - DX:       Whether LFB is required (1 or 0)
+;       - DI:       The destination byte buffer for VBE info block
+;       - SI:       The destination byte buffer for VBE mode info block
 ; 
 ; Return registers:
 ;       
-;       - AX:       1 if the mode is available, otherwise 0
+;       - AX:       The number for the video mode, or zero if not found
 ; 
 ; Killed registers:
 ;       
-;       None   
+;       None
 ;-------------------------------------------------------------------------------
-XEOS.16.vesa.checkModeAvailability:
+XEOS.16.vesa.findVESAMode:
     
-    ; Modes pointer is located at 0x0E offset
-    add     si,     0x0E
+    @XEOS.16.proc.start     6
     
-    ; Loop through video modes
-    .check:
-        
-        ; Current mode
-        mov     ax,     [ si ]
-        
-        ; 0xFFFF is the last mode
-        cmp     ax,     0xFFFF
-        je      .notfound
-        
-        ; Compares the current mode with the specified one
-        cmp     bx,     ax
-        je      .found
-        
-        ; Next mode
-        add     si,     1
-        jmp     .check
+    ; Saves arguments in the stack
+    @XEOS.16.proc.var.set   1,  ax
+    @XEOS.16.proc.var.set   2,  bx
+    @XEOS.16.proc.var.set   3,  cx
+    @XEOS.16.proc.var.set   4,  dx
+    @XEOS.16.proc.var.set   5,  di
+    @XEOS.16.proc.var.set   6,  si
     
-    .found:
-        
-        mov     ax,     1
-        jmp     .ret
+    ; Default return code
+    mov     WORD [ $XEOS.16.vesa.mode ],    0
     
-    .notfound:
+    ; Saves ES, as it may be altered
+    push    es
+    
+    ; Gets the VBE information block
+    mov     di,     @XEOS.16.proc.var.5
+    mov     ax,     0x4F00
+    @XEOS.16.int.video
+    
+    ; Restores ES
+    pop     es
+    
+    ; Checks if the function is supported
+    cmp     ax,     0x004F
+    jne     .ret
+    
+    ; Pointer to the available video modes
+    mov     si,     [ di + 0x0E ]
+    
+    .loop:
         
+        ; Saves ES, as it may be altered
+        push    es
+        
+        ; Gets the segment for the video modes pointer
+        mov     di,     @XEOS.16.proc.var.5
+        mov     ax,     [ di + 0x10 ]
+        mov     es,     ax
+        
+        ; Gets the video mode number
+        mov     dx,     WORD [ es:si ]
+        
+        ; Restores ES
+        pop     es
+        
+        ; 0xFFFF means we've reached the last video mode
+        cmp     dx,     0xFFFF
+        je      .ret
+        
+        ; Gets the full informations about the current video mode
+        mov     cx,     dx
+        mov     di,     @XEOS.16.proc.var.6
+        mov     ax,     0x4F01
+        @XEOS.16.int.video
+       
+        ; Checks if the function is supported
+        cmp     al,     0x004F
+        jne     .ret
+        cmp     ah,     0x00
+        jne     .loop
+        
+        ; Prepares for the next video mode by advancing SI
+        add     si,     2
+        
+        ; Gets the mode attributes in AX
+        mov     di,     @XEOS.16.proc.var.6
+        mov     ax,     WORD [ di ]
+        
+        ; Checks if the mode is supported
+        bt      ax,     0
+        jnc     .loop
+        
+        ; We only want graphic modes
+        bt      ax,     4
+        jnc     .loop
+        
+        ; Checks if we wants the mode to support LFB
+        mov     bx,     @XEOS.16.proc.var.4
+        test    bx,     bx
+        jz      .check_res
+        
+        ; Yes - test the mode for LFB support
+        bt      ax,     7
+        jnc     .loop
+    
+    ; At this point, we have a valid graphic video mode with or without
+    ; LFB support, depending on the call parameters
+    .check_res:
+        
+        ; Compares the horizontal resolution of the mode with the
+        ; requested one
+        mov     ax,     WORD [ di + 0x12 ]
+        cmp     ax,     WORD @XEOS.16.proc.var.1
+        jne     .loop
+        
+        ; Compares the vertical resolution of the mode with the
+        ; requested one
+        mov     ax,     WORD [ di + 0x14 ]
+        cmp     ax,     WORD @XEOS.16.proc.var.2
+        jne     .loop
+        
+        ; Compares the number of bits per pixel of the mode with the
+        ; requested one
         xor     ax,     ax
-    
+        mov     al,     BYTE [ di + 0x19 ]
+        cmp     ax,     WORD @XEOS.16.proc.var.3
+        jne     .loop
+        
+        ; Valid video mode - Stores it
+        mov     WORD [ $XEOS.16.vesa.mode ],    dx
+        
     .ret:
         
+        @XEOS.16.proc.end
+        
+        ; Result - Gets the found video mode
+        mov     ax,         WORD [ $XEOS.16.vesa.mode ]
+        
         ret
+
+;-------------------------------------------------------------------------------
+; Variables definition
+;-------------------------------------------------------------------------------
+
+$XEOS.16.vesa.mode      dw  0
     
 %endif

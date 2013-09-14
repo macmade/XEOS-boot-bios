@@ -96,6 +96,9 @@ BITS    16
 ; DEBUG - Forces the 32 bits mode
 ; %define XEOS32
 
+; DEBUG - Forces the text-only mode
+; %define XEOS_TEXT_ONLY
+
 ; Jumps to the entry point
 start: jmp main
 
@@ -141,7 +144,7 @@ struc XEOS.info.video_t
     
     .vesa_info:     resb    XEOS.16.vesa.info_t_size
     .mode:          resw    1
-    .mode_info:     resb    256
+    .mode_info:     resb    XEOS.16.vesa.modeinfo_t_size
     
 endstruc
 
@@ -176,20 +179,22 @@ $XEOS.boot.stage2.info:
     istruc XEOS.info_t
         
         at XEOS.info_t.memory
-        
         istruc XEOS.info.memory_t
-            
+        
         iend
         
         at XEOS.info_t.video
-        
         istruc XEOS.info.video_t
             
             at XEOS.info.video_t.vesa_info
-            
-            istruc XEOS.info.video_t
+            istruc XEOS.16.vesa.info_t
                 
-                at XEOS.16.vesa.info_t.signature,   db  "VBE2"
+                at XEOS.16.vesa.info_t.vbeSignature,    db  "VBE2"
+                
+            iend
+            
+            at XEOS.info.video_t.mode_info
+            istruc XEOS.16.vesa.modeinfo_t
                 
             iend
             
@@ -218,7 +223,7 @@ $XEOS.boot.stage2.msg.boot                              db  "XEOS: Booting...   
 $XEOS.boot.stage2.msg.greet                             db  "Entering the second stage bootloader:            ", @ASCII.NUL
 $XEOS.boot.stage2.msg.version.name                      db  "XSBoot-x86", @ASCII.NUL
 $XEOS.boot.stage2.msg.version.number                    db  "0.2.0", @ASCII.NUL
-$XEOS.boot.stage2.msg.vesa                              db  "Getting video informations:                      ", @ASCII.NUL
+$XEOS.boot.stage2.msg.vesa                              db  "Getting VGA informations:                      ", @ASCII.NUL
 $XEOS.boot.stage2.msg.memory                            db  "Detecting available memory:                      ", @ASCII.NUL
 $XEOS.boot.stage2.msg.sse                               db  "Enabling SSE instructions:                       ", @ASCII.NUL
 $XEOS.boot.stage2.msg.cpu                               db  "Getting CPU informations:                        ", @ASCII.NUL
@@ -249,7 +254,7 @@ $XEOS.boot.stage2.msg.error.fat12.dir                   db  "Error: cannot load 
 $XEOS.boot.stage2.msg.error.fat12.find                  db  "Error: file not found", @ASCII.NUL
 $XEOS.boot.stage2.msg.error.fat12.load                  db  "Error: cannot load the requested file", @ASCII.NUL
 $XEOS.boot.stage2.msg.error.a20                         db  "Error: cannot enable the A-20 address line", @ASCII.NUL
-$XEOS.boot.stage2.msg.error.cpuid                       db  "Error: processor does not support CPUID", @ASCII.NUL
+$XEOS.boot.stage2.msg.error.cpuid                       db  "Error: CPU does not support CPUID", @ASCII.NUL
 $XEOS.boot.stage2.msg.error.verify.32                   db  "Error: invalid ELF-32 image", @ASCII.NUL
 $XEOS.boot.stage2.msg.error.verify.32.e_ident.magic     db  "Error: invalid ELF-32 signature", @ASCII.NUL
 $XEOS.boot.stage2.msg.error.verify.32.e_ident.class     db  "Error: invalid ELF-32 class", @ASCII.NUL
@@ -1061,49 +1066,20 @@ main:
         @XEOS.boot.stage2.print.prompt
         @XEOS.boot.stage2.print $XEOS.boot.stage2.msg.vesa
         
-        ; Gets VESA informations
-        mov     ah,             0x4F
-        mov     al,             0x00
-        mov     di,             WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
+        ; Desired graphic parameters
+        mov     ax,     1280    ; Width
+        mov     bx,     1024    ; Height
+        mov     cx,     32      ; Depth
+        mov     dx,     1       ; Linear frame buffer required
         
-        ; Calls the BIOS video services
-        @XEOS.16.int.video
+        ; Buffer for VGA infos
+        mov     di,     WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
+        mov     si,     WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.mode_info
         
-        cmp     ah,             0x00
-        jne     .vesa.fail
-        
-        ; Checks the VESA version number
-        mov     ax,             WORD [ $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info + XEOS.16.vesa.info_t.version ]
-        cmp     ax,             0x200
-        jb      .vesa.fail
-        
-        ; Checks for 1280x1024 - 24 bits
-        mov     bx,             0x011B
-        mov     si,             WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
-        call    XEOS.16.vesa.checkModeAvailability
-        cmp     ax,             0x01
-        je      .vesa.success
-        
-        ; Checks for 1024x768 - 24 bits
-        mov     bx,             0x0118
-        mov     si,             WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
-        call    XEOS.16.vesa.checkModeAvailability
-        cmp     ax,             0x01
-        je      .vesa.success
-        
-        ; Checks for 800x600 - 24 bits
-        mov     bx,             0x0115
-        mov     si,             WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
-        call    XEOS.16.vesa.checkModeAvailability
-        cmp     ax,             0x01
-        je      .vesa.success
-        
-        ; Checks for 640x480 - 24 bits
-        mov     bx,             0x0112
-        mov     si,             WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
-        call    XEOS.16.vesa.checkModeAvailability
-        cmp     ax,             0x01
-        je      .vesa.success
+        ; Tries to find a compatible VGA mode
+        call    XEOS.16.vesa.findVESAMode
+        cmp     ax,     0
+        jg      .vesa.success
         
         .vesa.fail:
         
@@ -1113,23 +1089,27 @@ main:
             
         .vesa.success:
             
-            ; Stores the video mode
-            mov WORD [ $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.mode ],   bx
-            
-            ; Gets mode info
-            mov     ah,     0x4F
-            mov     al,     0x01
-            mov     cx,     bx
-            mov     di,     WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.mode_info
-            
-            ; Calls the BIOS video services
-            @XEOS.16.int.video
-            
-            cmp     ah,             0x00
-            jne     .vesa.fail
-            
             @XEOS.boot.stage2.print.success
             @XEOS.boot.stage2.print         $XEOS.boot.stage2.nl
+            
+            ; Switch to graphics mode unless XEOS_TEXT_ONLY is defined
+            %ifndef XEOS_TEXT_ONLY
+                
+                ; Stores the video mode
+                mov WORD [ $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.mode ],   ax
+                
+                ; Switch to the desired graphic mode
+                ; All next messages won't be displayed, as this bootloader
+                ; only manages standard text modes.
+                ; It would have been better to do this from protected or long
+                ; mode, but it would require direct SVGA programming, which
+                ; is significantly harder than a simple BIOS interrupt...
+                ; Maybe another time...
+                mov     bx,     ax
+                mov     ax,     0x4F02
+                @XEOS.16.int.video
+                
+            %endif
             
     ;---------------------------------------------------------------------------
     ; Switches the CPU to required mode (32/64 bits)
@@ -2547,11 +2527,20 @@ XEOS.boot.stage2.64.run:
         ; Jumps to the kernel code
         jmp     @XEOS.gdt.descriptors.64.code:rax
         
-    ; Halts the system
-    hlt
-    
 ;-------------------------------------------------------------------------------
 ; Ends of the second stage bootloader
+; 
+; The second stage bootloader could theoretically be up to 30'464 bytes,
+; as it's loaded at 0x0500 and as the first stage bootloader is loaded at
+; 0x7C00.
+; However, there's maybe an issue with the first stage bootloader, as it seems
+; the second stage bootloader is not loaded entirely if it's bigger than
+; 29'696 bytes (58 sectors).
+; So the following line will ensure this file doesn't grow bigger than
+; 29'696 bytes (0x7400 bytes).
+; I should of course try to fix that, but it might get hard, due to the 512
+; bytes limit of the first stage bootloader... And it would only
+; save 768 bytes anyway...
 ;-------------------------------------------------------------------------------
 
-times   0x7600 - ( $ - $$ ) db  @ASCII.NUL
+times   0x7400 - ( $ - $$ ) db  @ASCII.NUL
