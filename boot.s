@@ -760,7 +760,7 @@ main:
             ; We won't switch to 64 bits long mode
             mov     BYTE [ $XEOS.boot.stage2.longMode ],   0x00
             
-            jmp     .vesa
+            jmp     .a20
           
         ;-----------------------------------------------------------------------
         ; x86_c64 CPU
@@ -776,84 +776,6 @@ main:
             
             ; We'll need to switch to 64 bits long mode
             mov     BYTE [ $XEOS.boot.stage2.longMode ],   0x01
-    
-    ;---------------------------------------------------------------------------
-    ; VESA check
-    ;---------------------------------------------------------------------------
-    .vesa:
-        
-        @XEOS.boot.stage2.print.prompt
-        @XEOS.boot.stage2.print $XEOS.boot.stage2.msg.vesa
-        
-        ; Gets VESA informations
-        mov     ah,             0x4F
-        mov     al,             0x00
-        mov     di,             WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
-        
-        ; Calls the BIOS video services
-        @XEOS.16.int.video
-        
-        cmp     ah,             0x00
-        jne     .vesa.fail
-        
-        ; Checks the VESA version number
-        mov     ax,             WORD [ $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info + XEOS.16.vesa.info_t.version ]
-        cmp     ax,             0x200
-        jb      .vesa.fail
-        
-        ; Checks for 1280x1024 - 24 bits
-        mov     bx,             0x011B
-        mov     si,             WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
-        call    XEOS.16.vesa.checkModeAvailability
-        cmp     ax,             0x01
-        je      .vesa.success
-        
-        ; Checks for 1024x768 - 24 bits
-        mov     bx,             0x0118
-        mov     si,             WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
-        call    XEOS.16.vesa.checkModeAvailability
-        cmp     ax,             0x01
-        je      .vesa.success
-        
-        ; Checks for 800x600 - 24 bits
-        mov     bx,             0x0115
-        mov     si,             WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
-        call    XEOS.16.vesa.checkModeAvailability
-        cmp     ax,             0x01
-        je      .vesa.success
-        
-        ; Checks for 640x480 - 24 bits
-        mov     bx,             0x0112
-        mov     si,             WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
-        call    XEOS.16.vesa.checkModeAvailability
-        cmp     ax,             0x01
-        je      .vesa.success
-        
-        .vesa.fail:
-        
-            @XEOS.boot.stage2.print.failure
-            @XEOS.boot.stage2.print $XEOS.boot.stage2.nl
-            jmp     .error.vesa
-            
-        .vesa.success:
-            
-            ; Stores the video mode
-            mov WORD [ $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.mode ],   bx
-            
-            ; Gets mode info
-            mov     ah,     0x4F
-            mov     al,     0x01
-            mov     cx,     bx
-            mov     di,     WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.mode_info
-            
-            ; Calls the BIOS video services
-            @XEOS.16.int.video
-            
-            cmp     ah,             0x00
-            jne     .vesa.fail
-            
-            @XEOS.boot.stage2.print.success
-            @XEOS.boot.stage2.print         $XEOS.boot.stage2.nl
         
     ;---------------------------------------------------------------------------
     ; A-20 address line
@@ -1131,10 +1053,93 @@ main:
             @XEOS.boot.stage2.print.success
             @XEOS.boot.stage2.print $XEOS.boot.stage2.nl
             
-            ; Checks if we must switch the CPU to 64 bits long mode
-            cmp     BYTE [ $XEOS.boot.stage2.longMode ],   1
-            je      .switch64
-    
+    ;---------------------------------------------------------------------------
+    ; VESA check
+    ;---------------------------------------------------------------------------
+    .vesa:
+        
+        @XEOS.boot.stage2.print.prompt
+        @XEOS.boot.stage2.print $XEOS.boot.stage2.msg.vesa
+        
+        ; Gets VESA informations
+        mov     ah,             0x4F
+        mov     al,             0x00
+        mov     di,             WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
+        
+        ; Calls the BIOS video services
+        @XEOS.16.int.video
+        
+        cmp     ah,             0x00
+        jne     .vesa.fail
+        
+        ; Checks the VESA version number
+        mov     ax,             WORD [ $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info + XEOS.16.vesa.info_t.version ]
+        cmp     ax,             0x200
+        jb      .vesa.fail
+        
+        ; Checks for 1280x1024 - 24 bits
+        mov     bx,             0x011B
+        mov     si,             WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
+        call    XEOS.16.vesa.checkModeAvailability
+        cmp     ax,             0x01
+        je      .vesa.success
+        
+        ; Checks for 1024x768 - 24 bits
+        mov     bx,             0x0118
+        mov     si,             WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
+        call    XEOS.16.vesa.checkModeAvailability
+        cmp     ax,             0x01
+        je      .vesa.success
+        
+        ; Checks for 800x600 - 24 bits
+        mov     bx,             0x0115
+        mov     si,             WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
+        call    XEOS.16.vesa.checkModeAvailability
+        cmp     ax,             0x01
+        je      .vesa.success
+        
+        ; Checks for 640x480 - 24 bits
+        mov     bx,             0x0112
+        mov     si,             WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
+        call    XEOS.16.vesa.checkModeAvailability
+        cmp     ax,             0x01
+        je      .vesa.success
+        
+        .vesa.fail:
+        
+            @XEOS.boot.stage2.print.failure
+            @XEOS.boot.stage2.print $XEOS.boot.stage2.nl
+            jmp     .error.vesa
+            
+        .vesa.success:
+            
+            ; Stores the video mode
+            mov WORD [ $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.mode ],   bx
+            
+            ; Gets mode info
+            mov     ah,     0x4F
+            mov     al,     0x01
+            mov     cx,     bx
+            mov     di,     WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.mode_info
+            
+            ; Calls the BIOS video services
+            @XEOS.16.int.video
+            
+            cmp     ah,             0x00
+            jne     .vesa.fail
+            
+            @XEOS.boot.stage2.print.success
+            @XEOS.boot.stage2.print         $XEOS.boot.stage2.nl
+            
+    ;---------------------------------------------------------------------------
+    ; Switches the CPU to required mode (32/64 bits)
+    ;---------------------------------------------------------------------------
+    .switch:
+        
+        ; Checks if we must switch the CPU to 64 bits long mode
+        cmp     BYTE [ $XEOS.boot.stage2.longMode ],   1
+        je      .switch64
+        
     ;---------------------------------------------------------------------------
     ; Switches the CPU to 32 bits mode
     ;---------------------------------------------------------------------------
