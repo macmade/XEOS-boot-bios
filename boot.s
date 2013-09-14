@@ -117,6 +117,7 @@ start: jmp main
 %include "xeos.16.debug.inc.s"      ; Debugging
 %include "xeos.16.mem.inc.s"        ; Memory related procedures
 %include "xeos.16.sse.inc.s"        ; SSE related procedures
+%include "xeos.16.vesa.inc.s"       ; VESA related procedures
 
 ;-------------------------------------------------------------------------------
 ; Types definition
@@ -127,9 +128,20 @@ start: jmp main
 ;-------------------------------------------------------------------------------
 struc XEOS.info.memory_t
 
-    .address:   resd    1
-    .length:    resd    1
+    .address:       resd    1
+    .length:        resd    1
 
+endstruc
+
+;-------------------------------------------------------------------------------
+; Video informations Structure:
+;-------------------------------------------------------------------------------
+struc XEOS.info.video_t
+    
+    .vesa_info:     resb    XEOS.16.vesa.info_t_size
+    .mode:          resw    1
+    .mode_info:     resb    256
+    
 endstruc
 
 ;-------------------------------------------------------------------------------
@@ -137,7 +149,8 @@ endstruc
 ;-------------------------------------------------------------------------------
 struc XEOS.info_t
 
-    .memory:    resb    XEOS.info.memory_t_size
+    .memory:        resb    XEOS.info.memory_t_size
+    .video:         resb    XEOS.info.video_t_size
 
 endstruc
 
@@ -149,7 +162,7 @@ $XEOS.boot.stage2.kernel.32.entry               dd  0
 $XEOS.boot.stage2.kernel.64.entry               dd  0
 $XEOS.boot.stage2.dataSector                    dw  0
 $XEOS.boot.stage2.kernel.sectors                dw  0
-$XEOS.boot.stage2.nl                            db  @ASCII.NL,  @ASCII.NUL
+$XEOS.boot.stage2.nl                            db  @ASCII.NL, @ASCII.NUL
 $XEOS.files.kernel.32                           db  "XEOS32  ELF", @ASCII.NUL
 $XEOS.files.kernel.64                           db  "XEOS64  ELF", @ASCII.NUL
 $XEOS.files.kernel.asm                          db  "KERNEL  BIN", @ASCII.NUL
@@ -161,8 +174,25 @@ $XEOS.boot.stage2.info:
     
     istruc XEOS.info_t
         
-        dd  0
-        dd  0
+        at XEOS.info_t.memory
+        
+        istruc XEOS.info.memory_t
+            
+        iend
+        
+        at XEOS.info_t.video
+        
+        istruc XEOS.info.video_t
+            
+            at XEOS.info.video_t.vesa_info
+            
+            istruc XEOS.info.video_t
+                
+                at XEOS.16.vesa.info_t.signature,   db  "VBE2"
+                
+            iend
+            
+        iend
         
     iend
 
@@ -183,25 +213,11 @@ $XEOS.boot.stage2.msg.yes                               db  "YES", @ASCII.NUL
 $XEOS.boot.stage2.msg.no                                db  "NO", @ASCII.NUL
 $XEOS.boot.stage2.msg.success                           db  "OK", @ASCII.NUL
 $XEOS.boot.stage2.msg.failure                           db  "FAIL", @ASCII.NUL
+$XEOS.boot.stage2.msg.boot                              db  "XEOS: Booting...                                                                ", @ASCII.NUL
 $XEOS.boot.stage2.msg.greet                             db  "Entering the second stage bootloader:            ", @ASCII.NUL
 $XEOS.boot.stage2.msg.version.name                      db  "XSBoot-x86", @ASCII.NUL
 $XEOS.boot.stage2.msg.version.number                    db  "0.2.0", @ASCII.NUL
-$XEOS.boot.stage2.msg.hr.top                            db  201, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, \
-                                                            205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, \
-                                                            205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, \
-                                                            205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, \
-                                                            205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 187, @ASCII.NUL
-$XEOS.boot.stage2.msg.hr.bottom                         db  200, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, \
-                                                            205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, \
-                                                            205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, \
-                                                            205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, \
-                                                            205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 188, @ASCII.NUL
-$XEOS.boot.stage2.msg.copyright.1.left                  db  "                ", 4, @ASCII.NUL
-$XEOS.boot.stage2.msg.copyright.1                       db  " XEOS - x86 Experimental Operating System ", @ASCII.NUL
-$XEOS.boot.stage2.msg.copyright.1.right                 db  4 ,"                 ", @ASCII.NUL
-$XEOS.boot.stage2.msg.copyright.2                       db  "                                                                             ", @ASCII.NUL
-$XEOS.boot.stage2.msg.copyright.3                       db  "      Copyright (c) 2010-2013 Jean-David Gadina - www.xs-labs.com            ", @ASCII.NUL
-$XEOS.boot.stage2.msg.copyright.4                       db  "                       All rights (& wrongs) reserved                        ", @ASCII.NUL
+$XEOS.boot.stage2.msg.vesa                              db  "Getting video informations:                      ", @ASCII.NUL
 $XEOS.boot.stage2.msg.memory                            db  "Detecting available memory:                      ", @ASCII.NUL
 $XEOS.boot.stage2.msg.sse                               db  "Enabling SSE instructions:                       ", @ASCII.NUL
 $XEOS.boot.stage2.msg.cpu                               db  "Getting CPU informations:                        ", @ASCII.NUL
@@ -252,7 +268,8 @@ $XEOS.boot.stage2.msg.error.verify.64.e_machine         db  "Error: invalid ELF-
 $XEOS.boot.stage2.msg.error.verify.64.e_version         db  "Error: invalid ELF-64 version", @ASCII.NUL
 $XEOS.boot.stage2.msg.error.verify.64.e_entry           db  "Error: invalid ELF-64 entry point address", @ASCII.NUL
 $XEOS.boot.stage2.msg.error.memory                      db  "Error: unable to detect available memory", @ASCII.NUL
-$XEOS.boot.stage2.msg.error.sse                         db  "Error: SSE instructions are not avalable", @ASCII.NUL
+$XEOS.boot.stage2.msg.error.sse                         db  "Error: SSE instructions are not available", @ASCII.NUL
+$XEOS.boot.stage2.msg.error.vesa                        db  "Error: VESA is not available", @ASCII.NUL
 
 ;-------------------------------------------------------------------------------
 ; Definitions & Macros
@@ -265,6 +282,18 @@ $XEOS.boot.stage2.msg.error.sse                         db  "Error: SSE instruct
 %define @XEOS.boot.stage2.kernel.segment        0x2000      ; 2000:0000 - 0x020000
 %define @XEOS.boot.stage2.kernel.address        0x00100000
 %define @XEOS.boot.stage2.kernel.text.offset    0x1000
+
+; Custom DAC colors
+%define @XEOS.DAC.colors.black      27,   30,  34
+%define @XEOS.DAC.colors.gray       128, 128, 128
+%define @XEOS.DAC.colors.gray.light 203, 203, 203
+%define @XEOS.DAC.colors.white      255, 255, 255
+%define @XEOS.DAC.colors.blue       122, 158, 191
+%define @XEOS.DAC.colors.green      127, 153,  96
+%define @XEOS.DAC.colors.cyan       128, 189, 190
+%define @XEOS.DAC.colors.red        171, 72,   67
+%define @XEOS.DAC.colors.magenta    177, 151, 201
+%define @XEOS.DAC.colors.yellow     179, 171,  74
 
 ;-------------------------------------------------------------------------------
 ; Prints text in color
@@ -390,7 +419,7 @@ $XEOS.boot.stage2.msg.error.sse                         db  "Error: SSE instruct
     push                            si
     @XEOS.boot.stage2.print.color   $XEOS.boot.stage2.msg.bracket.left,     @XEOS.16.video.color.white,         @XEOS.16.video.color.black
     @XEOS.boot.stage2.print         $XEOS.boot.stage2.msg.space
-    @XEOS.boot.stage2.print.color   $XEOS.boot.stage2.msg.prompt,           @XEOS.16.video.color.gray.light,    @XEOS.16.video.color.black
+    @XEOS.boot.stage2.print.color   $XEOS.boot.stage2.msg.prompt,           @XEOS.16.video.color.cyan.light,    @XEOS.16.video.color.black
     @XEOS.boot.stage2.print         $XEOS.boot.stage2.msg.space
     @XEOS.boot.stage2.print.color   $XEOS.boot.stage2.msg.bracket.right,    @XEOS.16.video.color.white,         @XEOS.16.video.color.black
     @XEOS.boot.stage2.print.color   $XEOS.boot.stage2.msg.gt,               @XEOS.16.video.color.white,         @XEOS.16.video.color.black
@@ -608,38 +637,53 @@ main:
         ; Restores the interrupts
         sti
         
-        ; Prints the copyright note
-        @XEOS.boot.stage2.print.color   $XEOS.boot.stage2.msg.hr.top,               @XEOS.16.video.color.white,         @XEOS.16.video.color.black
-        @XEOS.boot.stage2.print         $XEOS.boot.stage2.nl
-        @XEOS.boot.stage2.print         $XEOS.boot.stage2.msg.pipe
-        @XEOS.boot.stage2.print.color   $XEOS.boot.stage2.msg.copyright.1.left,     @XEOS.16.video.color.white,         @XEOS.16.video.color.black
-        @XEOS.boot.stage2.print.color   $XEOS.boot.stage2.msg.copyright.1,          @XEOS.16.video.color.brown.light,   @XEOS.16.video.color.black
-        @XEOS.boot.stage2.print.color   $XEOS.boot.stage2.msg.copyright.1.right,    @XEOS.16.video.color.white,         @XEOS.16.video.color.black
-        @XEOS.boot.stage2.print         $XEOS.boot.stage2.msg.pipe
-        @XEOS.boot.stage2.print         $XEOS.boot.stage2.nl
-        @XEOS.boot.stage2.print         $XEOS.boot.stage2.msg.pipe
-        @XEOS.boot.stage2.print.color   $XEOS.boot.stage2.msg.copyright.2,          @XEOS.16.video.color.white,         @XEOS.16.video.color.black
-        @XEOS.boot.stage2.print         $XEOS.boot.stage2.msg.pipe
-        @XEOS.boot.stage2.print         $XEOS.boot.stage2.nl
-        @XEOS.boot.stage2.print         $XEOS.boot.stage2.msg.pipe
-        @XEOS.boot.stage2.print.color   $XEOS.boot.stage2.msg.copyright.3,          @XEOS.16.video.color.gray.light,    @XEOS.16.video.color.black
-        @XEOS.boot.stage2.print         $XEOS.boot.stage2.msg.pipe
-        @XEOS.boot.stage2.print         $XEOS.boot.stage2.nl
-        @XEOS.boot.stage2.print         $XEOS.boot.stage2.msg.pipe
-        @XEOS.boot.stage2.print.color   $XEOS.boot.stage2.msg.copyright.4,          @XEOS.16.video.color.gray.light,    @XEOS.16.video.color.black
-        @XEOS.boot.stage2.print         $XEOS.boot.stage2.msg.pipe
-        @XEOS.boot.stage2.print         $XEOS.boot.stage2.nl
-        @XEOS.boot.stage2.print.color   $XEOS.boot.stage2.msg.hr.bottom,            @XEOS.16.video.color.white,         @XEOS.16.video.color.black
-        @XEOS.boot.stage2.print         $XEOS.boot.stage2.nl
+        ; Sets VGA video colors
+        @XEOS.16.video.setPaletteColor 0x00, @XEOS.DAC.colors.black         ; Black
+        @XEOS.16.video.setPaletteColor 0x01, @XEOS.DAC.colors.blue          ; Blue
+        @XEOS.16.video.setPaletteColor 0x02, @XEOS.DAC.colors.green         ; Green
+        @XEOS.16.video.setPaletteColor 0x03, @XEOS.DAC.colors.cyan          ; Cyan
+        @XEOS.16.video.setPaletteColor 0x04, @XEOS.DAC.colors.red           ; Red
+        @XEOS.16.video.setPaletteColor 0x05, @XEOS.DAC.colors.magenta       ; Magenta
+        @XEOS.16.video.setPaletteColor 0x14, @XEOS.DAC.colors.yellow        ; Brown
+        @XEOS.16.video.setPaletteColor 0x07, @XEOS.DAC.colors.gray.light    ; Light Gray
+        @XEOS.16.video.setPaletteColor 0x38, @XEOS.DAC.colors.gray          ; Dark Gray
+        @XEOS.16.video.setPaletteColor 0x39, @XEOS.DAC.colors.blue          ; Light Blue
+        @XEOS.16.video.setPaletteColor 0x3A, @XEOS.DAC.colors.green         ; Light Green
+        @XEOS.16.video.setPaletteColor 0x3B, @XEOS.DAC.colors.cyan          ; Light Cyan
+        @XEOS.16.video.setPaletteColor 0x3C, @XEOS.DAC.colors.red           ; Light Red
+        @XEOS.16.video.setPaletteColor 0x3D, @XEOS.DAC.colors.magenta       ; Light Magenta
+        @XEOS.16.video.setPaletteColor 0x3E, @XEOS.DAC.colors.yellow        ; Yellow
+        @XEOS.16.video.setPaletteColor 0x3F, @XEOS.DAC.colors.white         ; White
+        
+        ; Sets EGA video colors
+        @XEOS.16.video.setPaletteColor 0x00, @XEOS.DAC.colors.black         ; Black
+        @XEOS.16.video.setPaletteColor 0x01, @XEOS.DAC.colors.blue          ; Blue
+        @XEOS.16.video.setPaletteColor 0x02, @XEOS.DAC.colors.green         ; Green
+        @XEOS.16.video.setPaletteColor 0x03, @XEOS.DAC.colors.cyan          ; Cyan
+        @XEOS.16.video.setPaletteColor 0x04, @XEOS.DAC.colors.red           ; Red
+        @XEOS.16.video.setPaletteColor 0x05, @XEOS.DAC.colors.magenta       ; Magenta
+        @XEOS.16.video.setPaletteColor 0x06, @XEOS.DAC.colors.yellow        ; Brown
+        @XEOS.16.video.setPaletteColor 0x07, @XEOS.DAC.colors.gray.light    ; Light Gray
+        @XEOS.16.video.setPaletteColor 0x08, @XEOS.DAC.colors.gray          ; Dark Gray
+        @XEOS.16.video.setPaletteColor 0x09, @XEOS.DAC.colors.blue          ; Light Blue
+        @XEOS.16.video.setPaletteColor 0x0A, @XEOS.DAC.colors.green         ; Light Green
+        @XEOS.16.video.setPaletteColor 0x0B, @XEOS.DAC.colors.cyan          ; Light Cyan
+        @XEOS.16.video.setPaletteColor 0x0C, @XEOS.DAC.colors.red           ; Light Red
+        @XEOS.16.video.setPaletteColor 0x0D, @XEOS.DAC.colors.magenta       ; Light Magenta
+        @XEOS.16.video.setPaletteColor 0x0E, @XEOS.DAC.colors.yellow        ; Yellow
+        @XEOS.16.video.setPaletteColor 0x0F, @XEOS.DAC.colors.white         ; White
+        
+        @XEOS.16.video.setCursor        0,                          0
+        @XEOS.boot.stage2.print.color   $XEOS.boot.stage2.msg.boot, @XEOS.16.video.color.white,   @XEOS.16.video.color.blue
         
         ; Prints the welcome message
         @XEOS.boot.stage2.print.prompt
         @XEOS.boot.stage2.print         $XEOS.boot.stage2.msg.greet
         @XEOS.boot.stage2.print         $XEOS.boot.stage2.msg.bracket.left
         @XEOS.boot.stage2.print         $XEOS.boot.stage2.msg.space
-        @XEOS.boot.stage2.print.color   $XEOS.boot.stage2.msg.version.name,         @XEOS.16.video.color.green.light,   @XEOS.16.video.color.black
+        @XEOS.boot.stage2.print.color   $XEOS.boot.stage2.msg.version.name,     @XEOS.16.video.color.green.light,   @XEOS.16.video.color.black
         @XEOS.boot.stage2.print         $XEOS.boot.stage2.msg.slash
-        @XEOS.boot.stage2.print.color   $XEOS.boot.stage2.msg.version.number,       @XEOS.16.video.color.green.light,   @XEOS.16.video.color.black
+        @XEOS.boot.stage2.print.color   $XEOS.boot.stage2.msg.version.number,   @XEOS.16.video.color.green.light,   @XEOS.16.video.color.black
         @XEOS.boot.stage2.print         $XEOS.boot.stage2.msg.space
         @XEOS.boot.stage2.print         $XEOS.boot.stage2.msg.bracket.right
         @XEOS.boot.stage2.print         $XEOS.boot.stage2.nl
@@ -733,7 +777,7 @@ main:
             ; We won't switch to 64 bits long mode
             mov     BYTE [ $XEOS.boot.stage2.longMode ],   0x00
             
-            jmp     .a20
+            jmp     .vesa
           
         ;-----------------------------------------------------------------------
         ; x86_c64 CPU
@@ -750,6 +794,84 @@ main:
             ; We'll need to switch to 64 bits long mode
             mov     BYTE [ $XEOS.boot.stage2.longMode ],   0x01
     
+    ;---------------------------------------------------------------------------
+    ; VESA check
+    ;---------------------------------------------------------------------------
+    .vesa:
+        
+        @XEOS.boot.stage2.print.prompt
+        @XEOS.boot.stage2.print $XEOS.boot.stage2.msg.vesa
+        
+        ; Gets VESA informations
+        mov     ah,             0x4F
+        mov     al,             0x00
+        mov     di,             WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
+        
+        ; Calls the BIOS video services
+        @XEOS.16.int.video
+        
+        cmp     ah,             0x00
+        jne     .vesa.fail
+        
+        ; Checks the VESA version number
+        mov     ax,             WORD [ $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info + XEOS.16.vesa.info_t.version ]
+        cmp     ax,             0x200
+        jb      .vesa.fail
+        
+        ; Checks for 1280x1024 - 24 bits
+        mov     bx,             0x011B
+        mov     si,             WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
+        call    XEOS.16.vesa.checkModeAvailability
+        cmp     ax,             0x01
+        je      .vesa.success
+        
+        ; Checks for 1024x768 - 24 bits
+        mov     bx,             0x0118
+        mov     si,             WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
+        call    XEOS.16.vesa.checkModeAvailability
+        cmp     ax,             0x01
+        je      .vesa.success
+        
+        ; Checks for 800x600 - 24 bits
+        mov     bx,             0x0115
+        mov     si,             WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
+        call    XEOS.16.vesa.checkModeAvailability
+        cmp     ax,             0x01
+        je      .vesa.success
+        
+        ; Checks for 640x480 - 24 bits
+        mov     bx,             0x0112
+        mov     si,             WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.vesa_info
+        call    XEOS.16.vesa.checkModeAvailability
+        cmp     ax,             0x01
+        je      .vesa.success
+        
+        .vesa.fail:
+        
+            @XEOS.boot.stage2.print.failure
+            @XEOS.boot.stage2.print $XEOS.boot.stage2.nl
+            jmp     .error.vesa
+            
+        .vesa.success:
+            
+            ; Stores the video mode
+            mov WORD [ $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.mode ],   bx
+            
+            ; Gets mode info
+            mov     ah,     0x4F
+            mov     al,     0x01
+            mov     cx,     bx
+            mov     di,     WORD $XEOS.boot.stage2.info + XEOS.info_t.video + XEOS.info.video_t.mode_info
+            
+            ; Calls the BIOS video services
+            @XEOS.16.int.video
+            
+            cmp     ah,             0x00
+            jne     .vesa.fail
+            
+            @XEOS.boot.stage2.print.success
+            @XEOS.boot.stage2.print         $XEOS.boot.stage2.nl
+        
     ;---------------------------------------------------------------------------
     ; A-20 address line
     ;--------------------------------------------------------------------------- 
@@ -1170,6 +1292,11 @@ main:
     .error.sse:
         
         @XEOS.boot.stage2.print.line.error  $XEOS.boot.stage2.msg.error.sse
+        jmp                                 .error
+        
+    .error.vesa:
+        
+        @XEOS.boot.stage2.print.line.error  $XEOS.boot.stage2.msg.error.vesa
         jmp                                 .error
         
     .error:
@@ -2051,7 +2178,7 @@ XEOS.boot.stage2.32.run:
         
         @XEOS.32.video.print                $XEOS.boot.stage2.msg.32.bracket.left
         @XEOS.32.video.print                $XEOS.boot.stage2.msg.32.space
-        @XEOS.32.video.setForegroundColor   @XEOS.32.video.color.gray.light
+        @XEOS.32.video.setForegroundColor   @XEOS.32.video.color.cyan.light
         @XEOS.32.video.print                $XEOS.boot.stage2.msg.32.prompt
         @XEOS.32.video.setForegroundColor   @XEOS.32.video.color.white
         @XEOS.32.video.print                $XEOS.boot.stage2.msg.32.space
@@ -2167,7 +2294,7 @@ XEOS.boot.stage2.32.run:
         
         @XEOS.32.video.print                $XEOS.boot.stage2.msg.32.bracket.left
         @XEOS.32.video.print                $XEOS.boot.stage2.msg.32.space
-        @XEOS.32.video.setForegroundColor   @XEOS.32.video.color.gray.light
+        @XEOS.32.video.setForegroundColor   @XEOS.32.video.color.cyan.light
         @XEOS.32.video.print                $XEOS.boot.stage2.msg.32.prompt
         @XEOS.32.video.setForegroundColor   @XEOS.32.video.color.white
         @XEOS.32.video.print                $XEOS.boot.stage2.msg.32.space
@@ -2277,7 +2404,7 @@ XEOS.boot.stage2.64.run:
         
         @XEOS.64.video.print                $XEOS.boot.stage2.msg.64.bracket.left
         @XEOS.64.video.print                $XEOS.boot.stage2.msg.64.space
-        @XEOS.64.video.setForegroundColor   @XEOS.64.video.color.gray.light
+        @XEOS.64.video.setForegroundColor   @XEOS.64.video.color.cyan.light
         @XEOS.64.video.print                $XEOS.boot.stage2.msg.64.prompt
         @XEOS.64.video.setForegroundColor   @XEOS.64.video.color.white
         @XEOS.64.video.print                $XEOS.boot.stage2.msg.64.space
@@ -2401,7 +2528,7 @@ XEOS.boot.stage2.64.run:
         
         @XEOS.64.video.print                $XEOS.boot.stage2.msg.64.bracket.left
         @XEOS.64.video.print                $XEOS.boot.stage2.msg.64.space
-        @XEOS.64.video.setForegroundColor   @XEOS.64.video.color.gray.light
+        @XEOS.64.video.setForegroundColor   @XEOS.64.video.color.cyan.light
         @XEOS.64.video.print                $XEOS.boot.stage2.msg.64.prompt
         @XEOS.64.video.setForegroundColor   @XEOS.64.video.color.white
         @XEOS.64.video.print                $XEOS.boot.stage2.msg.64.space
@@ -2434,3 +2561,9 @@ XEOS.boot.stage2.64.run:
         
     ; Halts the system
     hlt
+    
+;-------------------------------------------------------------------------------
+; Ends of the second stage bootloader
+;-------------------------------------------------------------------------------
+
+times   0x7600 - ( $ - $$ ) db  @ASCII.NUL
