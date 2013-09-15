@@ -223,7 +223,7 @@ $XEOS.boot.stage2.msg.boot                              db  "XEOS: Booting...   
 $XEOS.boot.stage2.msg.greet                             db  "Entering the second stage bootloader:            ", @ASCII.NUL
 $XEOS.boot.stage2.msg.version.name                      db  "XSBoot-x86", @ASCII.NUL
 $XEOS.boot.stage2.msg.version.number                    db  "0.2.0", @ASCII.NUL
-$XEOS.boot.stage2.msg.vesa                              db  "Getting VGA informations:                      ", @ASCII.NUL
+$XEOS.boot.stage2.msg.vesa                              db  "Getting video informations:                      ", @ASCII.NUL
 $XEOS.boot.stage2.msg.memory                            db  "Detecting available memory:                      ", @ASCII.NUL
 $XEOS.boot.stage2.msg.sse                               db  "Enabling SSE instructions:                       ", @ASCII.NUL
 $XEOS.boot.stage2.msg.cpu                               db  "Getting CPU informations:                        ", @ASCII.NUL
@@ -1105,9 +1105,10 @@ main:
                 ; mode, but it would require direct SVGA programming, which
                 ; is significantly harder than a simple BIOS interrupt...
                 ; Maybe another time...
-                mov     bx,     ax
-                mov     ax,     0x4F02
-                @XEOS.16.int.video
+                ;mov     bx,     ax
+                ;or      bx,     0x4000
+                ;mov     ax,     0x4F02
+                ;@XEOS.16.int.video
                 
             %endif
             
@@ -2527,6 +2528,9 @@ XEOS.boot.stage2.64.run:
         ; Jumps to the kernel code
         jmp     @XEOS.gdt.descriptors.64.code:rax
         
+    ; Halts the system
+    hlt
+        
 ;-------------------------------------------------------------------------------
 ; Ends of the second stage bootloader
 ; 
@@ -2543,4 +2547,4 @@ XEOS.boot.stage2.64.run:
 ; save 768 bytes anyway...
 ;-------------------------------------------------------------------------------
 
-times   0x7400 - ( $ - $$ ) db  @ASCII.NUL
+;times   0x7400 - ( $ - $$ ) db  @ASCII.NUL
