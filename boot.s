@@ -2547,4 +2547,4 @@ XEOS.boot.stage2.64.run:
 ; save 768 bytes anyway...
 ;-------------------------------------------------------------------------------
 
-;times   0x7400 - ( $ - $$ ) db  @ASCII.NUL
+times   0x7400 - ( $ - $$ ) db  @ASCII.NUL
