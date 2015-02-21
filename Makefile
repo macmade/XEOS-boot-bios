@@ -62,11 +62,12 @@
 include make/Config.mk
 include make/Targets.mk
 
-PROMPT  := XEOS SOURCE BOOT BIOS
-DEPS    := 
-FILES   := 
+ARGS_AS_boot += -i $(DIR_SRC)utils/
+PROMPT       := XEOS SOURCE BOOT BIOS
+DEPS         := 
+FILES        := $(call XEOS_FUNC_S_FILES,$(DIR_SRC))
 
-all:
+all: boot-build
 	
 	@:
 	
