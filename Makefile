@@ -59,76 +59,17 @@
 
 # $Id$
 
-include ../../../Makefile-Config.mk
+include make/Config.mk
+include make/Targets.mk
 
-#-------------------------------------------------------------------------------
-# Display
-#-------------------------------------------------------------------------------
+PROMPT  := XEOS SOURCE BOOT BIOS
+DEPS    := 
+FILES   := 
 
-PROMPT              := "    ["$(COLOR_GREEN)" XEOS "$(COLOR_NONE)"]> ["$(COLOR_GREEN)" SRC  "$(COLOR_NONE)"]> ["$(COLOR_GREEN)" BOOT "$(COLOR_NONE)"]> ["$(COLOR_GREEN)" BIOS "$(COLOR_NONE)"]> *** "
-
-#-------------------------------------------------------------------------------
-# Paths
-#-------------------------------------------------------------------------------
-
-DIR_SRC_INC         := $(PATH_SRC_BOOT_BIOS)include/
-
-#-------------------------------------------------------------------------------
-# Search paths
-#-------------------------------------------------------------------------------
-
-# Define the search paths for source files
-vpath %$(EXT_ASM) $(PATH_SRC_BOOT_BIOS)
-
-#-------------------------------------------------------------------------------
-# File suffixes
-#-------------------------------------------------------------------------------
-
-# Adds the suffixes used in this file
-.SUFFIXES:  $(EXT_ASM)      \
-            $(EXT_BIN_RAW)
-
-#-------------------------------------------------------------------------------
-# Files
-#-------------------------------------------------------------------------------
-
-# Gets every assembly file in the source directory
-_FILES_ASM          = $(foreach dir,$(PATH_SRC_BOOT_BIOS),$(wildcard $(PATH_SRC_BOOT_BIOS)*$(EXT_ASM)))
-
-# Gets only the file name of the assembly files
-_FILES_ASM_REL      = $(notdir $(_FILES_ASM))
-
-# Replace the code extension by the binary one
-_FILES_ASM_BIN      = $(subst $(EXT_ASM),$(EXT_BIN_RAW),$(_FILES_ASM_REL))
-
-# Prefix all binary files with the build directory
-_FILES_BIN_BUILD    = $(addprefix $(PATH_BUILD_BOOT_BIOS),$(_FILES_ASM_BIN))
-
-#-------------------------------------------------------------------------------
-# Built-in targets
-#-------------------------------------------------------------------------------
-
-# Declaration for phony targets, to avoid problems with local files
-.PHONY: all     \
-        clean
-
-#-------------------------------------------------------------------------------
-# Phony targets
-#-------------------------------------------------------------------------------
-
-# Build the full project
-all: $(_FILES_BIN_BUILD)
-
-	@:
-
-# Cleans the build files
-clean:
-
-	@$(PRINT) $(PROMPT)"Cleaning all build files"
-	@$(RM) $(ARGS_RM) $(PATH_BUILD_BOOT_BIOS)*
+all:
 	
-# Compiles an assembly file
-$(PATH_BUILD_BOOT_BIOS)%$(EXT_BIN_RAW): %$(EXT_ASM)
-
-	@$(PRINT) $(PROMPT)"Compiling assembly file: "$(COLOR_YELLOW)"$<"$(COLOR_NONE)" -> "$(COLOR_GRAY)`echo "$(@F)" | tr '[:lower:]' '[:upper:]'``echo $(COLOR_NONE)`
-	@$(AS) -f bin -I $(DIR_SRC_INC) -o $(PATH_BUILD_BOOT_BIOS)`echo "$(@F)" | tr '[:lower:]' '[:upper:]'` $(abspath $<)
+	@:
+	
+clean: obj-clean
+	
+	@:
