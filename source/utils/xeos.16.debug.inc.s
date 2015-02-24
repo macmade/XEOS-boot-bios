@@ -59,19 +59,12 @@
 ; OF THE POSSIBILITY OF SUCH DAMAGE.
 ;-------------------------------------------------------------------------------
 
-; $Id$
-
-;-------------------------------------------------------------------------------
-; @file            xeos.16.debug.inc.s
-; @author          Jean-David Gadina
-; @copyright       (c) 2010-2013, Jean-David Gadina - www.xs-labs.com
-;-------------------------------------------------------------------------------
-
 ;-------------------------------------------------------------------------------
 ; Debug procedures
 ; 
 ; Those procedures and macros are intended to be used only in 16 bits real mode.
 ;-------------------------------------------------------------------------------
+
 %ifndef __XEOS_16_DEBUG_INC_S__
 %define __XEOS_16_DEBUG_INC_S__
 
