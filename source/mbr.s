@@ -128,8 +128,8 @@ $XEOS.files.stage2              db  "BOOT    BIN"
 ;-------------------------------------------------------------------------------
 
 $XEOS.boot.stage1.msg.boot      db  "XS: ", @ASCII.NUL
-$XEOS.boot.stage1.msg.error     db  "FAIL",   @ASCII.NL, @ASCII.NUL
-$XEOS.boot.stage1.msg.ok        db  "BOOT",   @ASCII.NL, @ASCII.NUL
+$XEOS.boot.stage1.msg.error     db  "FAIL", @ASCII.NL, @ASCII.NUL
+$XEOS.boot.stage1.msg.ok        db  "BOOT", @ASCII.NL, @ASCII.NUL
 
 ;-------------------------------------------------------------------------------
 ; Procedures

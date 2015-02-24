@@ -161,12 +161,11 @@ BITS    16
 ; 
 ; 0x36 - (8) - FAT file system type
 ;       This is not meant to be used to determine drive type, however,
-;       some utilities
-;       use it in this way.
+;       some utilities use it in this way.
 ;-------------------------------------------------------------------------------
 struc XEOS.io.fat12.mbr_t
 
-    .oemName:               resb    8
+    .oemID:                 resb    8
     .bytesPerSector:        resw    1
     .sectorsPerCluster:     resb    1
     .reservedSectors:       resw    1
@@ -181,8 +180,8 @@ struc XEOS.io.fat12.mbr_t
     .lbaSectors:            resd    1
     .driveNumber:           resb    1
     .reserved:              resb    1
-    .bootSignature:         resb    1
-    .volumeID:              resd    1
+    .extendedBootSignature: resb    1
+    .volumeSerialNumber:    resd    1
     .volumeLabel:           resb    11
     .fileSystem:            resb    8
 
@@ -197,7 +196,7 @@ $XEOS.io.fat12.mbr:
     
     istruc XEOS.io.fat12.mbr_t
 
-        db @XEOS.io.fat12.mbr.oemName
+        db @XEOS.io.fat12.mbr.oemID
         dw @XEOS.io.fat12.mbr.bytesPerSector
         db @XEOS.io.fat12.mbr.sectorsPerCluster
         dw @XEOS.io.fat12.mbr.reservedSectors
@@ -212,8 +211,8 @@ $XEOS.io.fat12.mbr:
         dd @XEOS.io.fat12.mbr.lbaSectors
         db @XEOS.io.fat12.mbr.driveNumber
         db @XEOS.io.fat12.mbr.reserved
-        db @XEOS.io.fat12.mbr.bootSignature
-        dd @XEOS.io.fat12.mbr.volumeID
+        db @XEOS.io.fat12.mbr.extendedBootSignature
+        dd @XEOS.io.fat12.mbr.volumeSerialNumber
         db @XEOS.io.fat12.mbr.volumeLabel
         db @XEOS.io.fat12.mbr.fileSystem
 

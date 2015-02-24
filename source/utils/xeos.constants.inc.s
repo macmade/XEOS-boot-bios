@@ -79,24 +79,24 @@
 %define @XEOS.io.boot.signature                 0xAA55
 
 ; Master boot record values
-%define @XEOS.io.fat12.mbr.oemName              "XEOS",  0x20, 0x20, 0x20, 0x20
-%define @XEOS.io.fat12.mbr.volumeLabel          "XEOS",  0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
-%define @XEOS.io.fat12.mbr.fileSystem           "FAT12", 0x20, 0x20, 0x20
-%define @XEOS.io.fat12.mbr.bytesPerSector       512
-%define @XEOS.io.fat12.mbr.sectorsPerCluster    1
-%define @XEOS.io.fat12.mbr.reservedSectors      1
-%define @XEOS.io.fat12.mbr.numberOfFATs         2
-%define @XEOS.io.fat12.mbr.maxRootDirEntries    224
-%define @XEOS.io.fat12.mbr.totalSectors         2880
-%define @XEOS.io.fat12.mbr.mediaDescriptor      0xF0
-%define @XEOS.io.fat12.mbr.sectorsPerFAT        9
-%define @XEOS.io.fat12.mbr.sectorsPerTrack      18
-%define @XEOS.io.fat12.mbr.headsPerCylinder     2
-%define @XEOS.io.fat12.mbr.hiddenSectors        0
-%define @XEOS.io.fat12.mbr.lbaSectors           0
-%define @XEOS.io.fat12.mbr.driveNumber          0
-%define @XEOS.io.fat12.mbr.reserved             0
-%define @XEOS.io.fat12.mbr.bootSignature        41
-%define @XEOS.io.fat12.mbr.volumeID             0
+%define @XEOS.io.fat12.mbr.oemID                    "XEOS",  0x20, 0x20, 0x20, 0x20
+%define @XEOS.io.fat12.mbr.volumeLabel              "XEOS",  0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
+%define @XEOS.io.fat12.mbr.fileSystem               "FAT12", 0x20, 0x20, 0x20
+%define @XEOS.io.fat12.mbr.bytesPerSector           512
+%define @XEOS.io.fat12.mbr.sectorsPerCluster        1
+%define @XEOS.io.fat12.mbr.reservedSectors          1
+%define @XEOS.io.fat12.mbr.numberOfFATs             2
+%define @XEOS.io.fat12.mbr.maxRootDirEntries        224
+%define @XEOS.io.fat12.mbr.totalSectors             2880
+%define @XEOS.io.fat12.mbr.mediaDescriptor          0xF0
+%define @XEOS.io.fat12.mbr.sectorsPerFAT            9
+%define @XEOS.io.fat12.mbr.sectorsPerTrack          18
+%define @XEOS.io.fat12.mbr.headsPerCylinder         2
+%define @XEOS.io.fat12.mbr.hiddenSectors            0
+%define @XEOS.io.fat12.mbr.lbaSectors               0
+%define @XEOS.io.fat12.mbr.driveNumber              0
+%define @XEOS.io.fat12.mbr.reserved                 0
+%define @XEOS.io.fat12.mbr.extendedBootSignature    41
+%define @XEOS.io.fat12.mbr.volumeSerialNumber       0
 
 %endif
