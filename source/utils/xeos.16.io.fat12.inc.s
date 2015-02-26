@@ -480,13 +480,13 @@ XEOS.16.io.fat12.loadFile:
           
         .even:
             
-            ; Keep low twelve bytes
+            ; Keep low twelve bits
             and     dx,         0000111111111111b
             jmp     .end
             
         .odd:
             
-            ; Keep high twelve bytes
+            ; Keep high twelve bits
             shr     dx,         4
               
         .end:
