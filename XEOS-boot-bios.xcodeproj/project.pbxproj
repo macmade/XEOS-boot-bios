@@ -44,7 +44,7 @@
 		0581A3671A9C10D50009D62C /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0630;
+				LastUpgradeCheck = 1020;
 				ORGANIZATIONNAME = "XS-Labs";
 				TargetAttributes = {
 					0581A36B1A9C10D50009D62C = {
@@ -57,6 +57,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = 0581A3661A9C10D50009D62C;
