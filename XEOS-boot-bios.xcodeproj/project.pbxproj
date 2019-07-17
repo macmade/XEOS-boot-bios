@@ -44,7 +44,7 @@
 		0581A3671A9C10D50009D62C /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1020;
+				LastUpgradeCheck = 1100;
 				ORGANIZATIONNAME = "XS-Labs";
 				TargetAttributes = {
 					0581A36B1A9C10D50009D62C = {
@@ -54,11 +54,11 @@
 			};
 			buildConfigurationList = 0581A36A1A9C10D50009D62C /* Build configuration list for PBXProject "XEOS-boot-bios" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				English,
 				en,
+				Base,
 			);
 			mainGroup = 0581A3661A9C10D50009D62C;
 			productRefGroup = 0581A3661A9C10D50009D62C;
