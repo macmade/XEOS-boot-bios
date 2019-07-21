@@ -158,7 +158,7 @@ $XEOS.boot.stage1.msg.ok        db  "BOOT", @ASCII.NL, @ASCII.NUL
 ; 
 ;       0x00000500 - 0x00007BFF:     30'464 bytes       2nd stage boot loader
 ;       0x00007C00 - 0x00007DFF:        512 bytes       1st stage boot loader
-;       0x00007E00 - 0x000099FF:      7'168 bytes 	    FAT-12 Root Directory
+;       0x00007E00 - 0x000099FF:      7'168 bytes       FAT-12 Root Directory
 ;       0x00009A00 - 0x0000FFFF:     18'432 bytes       FATs
 ;-------------------------------------------------------------------------------
 main:
