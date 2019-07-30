@@ -263,7 +263,7 @@ main:
         hlt
     
 ;-------------------------------------------------------------------------------
-; Ends of the boot sector
+; End of the boot sector
 ;-------------------------------------------------------------------------------
 
 ; Pads the remainder of the boot sector with '0', so we'll be able to write the

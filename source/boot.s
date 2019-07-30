@@ -2529,19 +2529,19 @@ XEOS.boot.stage2.64.run:
     hlt
         
 ;-------------------------------------------------------------------------------
-; Ends of the second stage bootloader
+; End of the second stage bootloader
 ; 
-; The second stage bootloader could theoretically be up to 30'464 bytes,
-; as it's loaded at 0x0500 and as the first stage bootloader is loaded at
-; 0x7C00.
-; However, there's maybe an issue with the first stage bootloader, as it seems
-; the second stage bootloader is not loaded entirely if it's bigger than
-; 29'696 bytes (58 sectors).
+; The second stage bootloader can theoretically be up to 30'464 bytes (0x7700),
+; as it's loaded at 0x0500 by the first stage bootlader, which is itself loaded
+; at 0x7C00 by the BIOS.
+; 
+; But as we're using (and loading) sectors of 512 bytes from the FAT-12 boot
+; image, the maximum size is 30'208 bytes (0x7600), which is 59 sectors.
+; Reading an additional sector for the remaining 256 bytes would overwrite
+; the first stage bootloader by 256 bytes.
+; 
 ; So the following line will ensure this file doesn't grow bigger than
-; 29'696 bytes (0x7400 bytes).
-; I should of course try to fix that, but it might get hard, due to the 512
-; bytes limit of the first stage bootloader... And it would only
-; save 768 bytes anyway...
+; 30'208 bytes (0x7600).
 ;-------------------------------------------------------------------------------
 
-times   0x7400 - ( $ - $$ ) db  @ASCII.NUL
+times   0x7600 - ( $ - $$ ) db  @ASCII.NUL
