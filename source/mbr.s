@@ -127,9 +127,9 @@ $XEOS.files.stage2              db  "BOOT    BIN"
 ; Strings
 ;-------------------------------------------------------------------------------
 
-$XEOS.boot.stage1.msg.boot      db  "XEOS: ", @ASCII.NUL
-$XEOS.boot.stage1.msg.error     db  "FAIL",   @ASCII.NL, @ASCII.NUL
-$XEOS.boot.stage1.msg.ok        db  "OK",     @ASCII.NL, @ASCII.NUL
+$XEOS.boot.stage1.msg.boot      db  "XS: ", @ASCII.NUL
+$XEOS.boot.stage1.msg.error     db  "FAIL", @ASCII.NL, @ASCII.NUL
+$XEOS.boot.stage1.msg.ok        db  "OK",   @ASCII.NL, @ASCII.NUL
 
 ;-------------------------------------------------------------------------------
 ; Procedures
@@ -178,6 +178,7 @@ main:
     xor     ax,         ax
     mov     ss,         ax
     mov     sp,         0xFFFF
+    mov     bp,         sp
     
     ; Restores the interrupts
     sti
