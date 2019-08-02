@@ -207,23 +207,33 @@ XEOS.16.cpu.64:
     
     @XEOS.16.proc.start 0
     
-    ; Indentifies CPU
+    ; Indentifies CPU capabilities
     mov     eax,        0x80000000
     cpuid
     
-    ; Checks for 64 bits capabilities
+    ; Checks for extended capabilities
     cmp     eax,        0x80000001
     jb      .error
+    
+    .ext.available:
         
-    .success
+        ; Get extended CPU features
+        mov     eax,        0x80000001
+        cpuid
         
-        @XEOS.16.proc.end
+        ; Checks for 64-bits flag
+        test    edx,        1 << 29
+        jz      .error  
         
-        ; Success - Stores result code in AX
-        mov     ax,         0x01
-        
-        ret
-        
+        .success:
+            
+            @XEOS.16.proc.end
+            
+            ; Success - Stores result code in AX
+            mov     ax,         0x01
+            
+            ret
+    
     .error:
         
         @XEOS.16.proc.end
