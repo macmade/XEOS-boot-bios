@@ -178,7 +178,7 @@ main:
     xor     ax,         ax
     mov     ss,         ax
     mov     sp,         0xFFFF
-    mov     bp,         sp
+    ;mov     bp,         sp
     
     ; Restores the interrupts
     sti
